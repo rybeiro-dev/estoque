@@ -22,16 +22,33 @@ class ProductController extends Controller
         $draw = $_REQUEST['draw'];
         $search = $_REQUEST['search']['value'];
 
-        $products = Product::limit($limit)->offset($offset);
+        $columns = [
+            'id',
+            'description',
+            'brand',
+            'product_model',
+            'department',
+            'group',
+            'price',
+            'status',
+        ];
+
+
+        $column = array_key_exists('order',$_REQUEST) ? $columns[$_REQUEST['order'][0]['column']] : 'id';
+        $order = array_key_exists('order',$_REQUEST) ? $_REQUEST['order'][0]['dir'] : 'asc' ;
+
+
+        $products = Product::limit($limit)->offset($offset)->orderBy($column,$order);
 
         if( !empty($search) ){
             $products =  $products->whereRaw("brand like '%{$search}%' or product_model like '%{$search}%' or description like '%{$search}%'");
         }
 
+        $total = $products->count();
+
         $products = $products->get();
 
 
-        $total = Product::count();
 
         $dados = [];
         foreach($products as $product){
