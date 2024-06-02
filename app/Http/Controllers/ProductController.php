@@ -30,25 +30,20 @@ class ProductController extends Controller
             'department',
             'group',
             'price',
-            'status',
+            'status'
         ];
 
-
         $column = array_key_exists('order',$_REQUEST) ? $columns[$_REQUEST['order'][0]['column']] : 'id';
-        $order = array_key_exists('order',$_REQUEST) ? $_REQUEST['order'][0]['dir'] : 'asc' ;
+        $order = array_key_exists('order',$_REQUEST) ? $_REQUEST['order'][0]['dir'] : 'asc';
 
-
-        $products = Product::limit($limit)->offset($offset)->orderBy($column,$order);
-
-        if( !empty($search) ){
-            $products =  $products->whereRaw("brand like '%{$search}%' or product_model like '%{$search}%' or description like '%{$search}%'");
+        if( empty($search) ){
+            $products = Product::limit($limit)->offset($offset)->orderBy($column,$order)->get();
+            $total = Product::count();
+        } else {
+            $products =  Product::whereRaw("brand like '%{$search}%' or product_model like '%{$search}%' or description like '%{$search}%'");
+            $total = $products->count();
+            $products = $products->limit($limit)->offset($offset)->orderBy($column,$order)->get();
         }
-
-        $total = $products->count();
-
-        $products = $products->get();
-
-
 
         $dados = [];
         foreach($products as $product){
@@ -61,7 +56,7 @@ class ProductController extends Controller
                 'department' => $product->department->description,
                 'group' => $product->group->description,
                 'price' => $product->price,
-                'status' => empty($product->status) ? "Inactive" : "Active"
+                'status' => empty($product->status) ? "Inactive" : "Active",
             ];
         }
 
